@@ -76,11 +76,19 @@ const CORE = [
 "assets/NOTICES",
 "assets/AssetManifest.json",
 "assets/FontManifest.json"];
+
+
 // During install, the TEMP cache is populated with the application shell files.
+
 self.addEventListener("install", (event) => {
+	console.log("install request for:", "install1");
+
+      console.log("install request for:", "install");
   self.skipWaiting();
   return event.waitUntil(
+
     caches.open(TEMP).then((cache) => {
+		console.log("install request temp cache :",TEMP );
       return cache.addAll(
         CORE.map((value) => new Request(value + '?revision=' + RESOURCES[value], {'cache': 'reload'})));
     })
@@ -93,21 +101,28 @@ self.addEventListener("install", (event) => {
 self.addEventListener("activate", function(event) {
   return event.waitUntil(async function() {
     try {
+
+		 console.log("Activate request :", "Activate st");
       var contentCache = await caches.open(CACHE_NAME);
       var tempCache = await caches.open(TEMP);
       var manifestCache = await caches.open(MANIFEST);
       var manifest = await manifestCache.match('manifest');
       // When there is no prior manifest, clear the entire cache.
       if (!manifest) {
+		  console.log("Activate request :", "no manifest");
         await caches.delete(CACHE_NAME);
         contentCache = await caches.open(CACHE_NAME);
+		console.log("Activate request : no manifest:",contentCache);
         for (var request of await tempCache.keys()) {
+			console.log("Activate request : no manifest: request", request);
           var response = await tempCache.match(request);
+			console.log("Activate request : no manifest: response", response);
           await contentCache.put(request, response);
         }
         await caches.delete(TEMP);
         // Save the manifest to make future upgrades efficient.
         await manifestCache.put('manifest', new Response(JSON.stringify(RESOURCES)));
+		console.log("Activate request : no manifest: response json", new Response(JSON.stringify(RESOURCES)));
         return;
       }
       var oldManifest = await manifest.json();
@@ -121,6 +136,7 @@ self.addEventListener("activate", function(event) {
         // the MD5 sum has changed, delete it. Otherwise the resource is left
         // in the cache and can be reused by the new service worker.
         if (!RESOURCES[key] || RESOURCES[key] != oldManifest[key]) {
+			 console.log("Activate request :", "Activate delete non macth cache"+request);
           await contentCache.delete(request);
         }
       }
@@ -128,11 +144,16 @@ self.addEventListener("activate", function(event) {
       // cache files preserved above.
       for (var request of await tempCache.keys()) {
         var response = await tempCache.match(request);
+		 console.log("Activate request  :", request);
+		 console.log("Activate response  :", response);
         await contentCache.put(request, response);
       }
       await caches.delete(TEMP);
       // Save the manifest to make future upgrades efficient.
       await manifestCache.put('manifest', new Response(JSON.stringify(RESOURCES)));
+
+		 console.log("Activate request value :", new Response(JSON.stringify(RESOURCES)));
+
       return;
     } catch (err) {
       // On an unhandled exception the state of the cache cannot be guaranteed.
@@ -148,33 +169,52 @@ self.addEventListener("activate", function(event) {
 // worker cache.
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== 'GET') {
+		 console.log("fetch request :", event.request.method);
     return;
   }
   var origin = self.location.origin;
+   console.log("fetch origin :", origin);
   var key = event.request.url.substring(origin.length + 1);
+   console.log("fetch key :", key);
   // Redirect URLs to the index.html
   if (key.indexOf('?v=') != -1) {
     key = key.split('?v=')[0];
+    console.log("fetch key vv:", key);
   }
   if (event.request.url == origin || event.request.url.startsWith(origin + '/#') || key == '') {
     key = '/';
+    console.log("fetch key origin:", key);
+
   }
   // If the URL is not the RESOURCE list then return to signal that the
   // browser should take over.
   if (!RESOURCES[key]) {
+    console.log("fetch key RESOURCES[key]:", RESOURCES[key]);
     return;
   }
   // If the URL is the index.html, perform an online-first request.
   if (key == '/') {
+
+    console.log("fetch key online:",key);
     return onlineFirst(event);
   }
   event.respondWith(caches.open(CACHE_NAME)
     .then((cache) =>  {
+
+    console.log("fetch CACHE_NAME:",CACHE_NAME);
       return cache.match(event.request).then((response) => {
         // Either respond with the cached resource, or perform a fetch and
         // lazily populate the cache.
-        return response || fetch(event.request).then((response) => {
+
+        console.log("fetch request:",event.request);
+
+        console.log("fetch response:",response);
+
+        return response ||
+         fetch(event.request).then((response) => {
+        console.log("fetch network request:",event.request);
           cache.put(event.request, response.clone());
+             console.log("fetch network response:",response);
           return response;
         });
       })
@@ -219,16 +259,22 @@ async function downloadOffline() {
 // Attempt to download the resource online before falling back to
 // the offline cache.
 function onlineFirst(event) {
+    console.log("fetch online:",event);
   return event.respondWith(
+    
     fetch(event.request).then((response) => {
+    console.log("fetch online event request:",event.request);
       return caches.open(CACHE_NAME).then((cache) => {
         cache.put(event.request, response.clone());
+    console.log("fetch online event response:",response);
         return response;
       });
     }).catch((error) => {
       return caches.open(CACHE_NAME).then((cache) => {
+         console.log("fetch online catch event request name:",CACHE_NAME);
         return cache.match(event.request).then((response) => {
           if (response != null) {
+            console.log("fetch online catch event response:",response);
             return response;
           }
           throw error;
