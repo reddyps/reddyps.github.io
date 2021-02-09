@@ -216,7 +216,13 @@ self.addEventListener("fetch", (event) => {
           cache.put(event.request, response.clone());
              console.log("fetch network response:",response);
           return response;
-        });
+        }).catch(function() {
+      // If both fail, show a generic fallback:
+      return caches.match('index.html');
+      // However, in reality you'd have many different
+      // fallbacks, depending on URL & headers.
+      // Eg, a fallback silhouette image for avatars.
+    });
       })
     })
   );
