@@ -198,7 +198,7 @@ self.addEventListener("fetch", (event) => {
     console.log("fetch key online:",key);
     return onlineFirst(event);
   }
-  event.respondWith(caches.open(CACHE_NAME)
+event.respondWith(caches.open(CACHE_NAME)
     .then((cache) =>  {
 
     console.log("fetch CACHE_NAME:",CACHE_NAME);
@@ -216,16 +216,16 @@ self.addEventListener("fetch", (event) => {
           cache.put(event.request, response.clone());
              console.log("fetch network response:",response);
           return response;
-        }).catch(function() {
+        });
+      })
+    })
+  ).catch(function() {
       // If both fail, show a generic fallback:
       return caches.match('index.html');
       // However, in reality you'd have many different
       // fallbacks, depending on URL & headers.
       // Eg, a fallback silhouette image for avatars.
-    });
-      })
     })
-  );
 });
 
 self.addEventListener('message', (event) => {
