@@ -165,10 +165,10 @@ self.addEventListener("activate", function(event) {
   }());
 });
 
-// The fetch handler redirects requests for RESOURCE files to the service
 // worker cache.
 self.addEventListener("fetch", (event) => {
-  if (event.request.method !== 'GET') {
+	try{
+		if (event.request.method !== 'GET') {
 		 console.log("fetch request :", event.request.method);
     return;
   }
@@ -198,7 +198,7 @@ self.addEventListener("fetch", (event) => {
     console.log("fetch key online:",key);
     return onlineFirst(event);
   }
-event.respondWith(caches.open(CACHE_NAME)
+  event.respondWith(caches.open(CACHE_NAME)
     .then((cache) =>  {
 
     console.log("fetch CACHE_NAME:",CACHE_NAME);
@@ -217,16 +217,24 @@ event.respondWith(caches.open(CACHE_NAME)
              console.log("fetch network response:",response);
           return response;
         });
-      })
-    })
-  ).catch(function() {
+      }).catch(function() {
       // If both fail, show a generic fallback:
-      return caches.match('index.html');
+      return caches.match('/offline.html');
       // However, in reality you'd have many different
       // fallbacks, depending on URL & headers.
       // Eg, a fallback silhouette image for avatars.
     })
+    })
+  );
+		
+	}
+	catch (err) {
+        console.log("fetch network  or cahche error request:",err);
+		
+    }
+  
 });
+
 
 self.addEventListener('message', (event) => {
   // SkipWaiting can be used to immediately activate a waiting service worker.
