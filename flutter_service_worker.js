@@ -220,7 +220,7 @@ self.addEventListener("fetch", (event) => {
       }).catch(function() {
 	      console.log("hiiii","hhhhhhhhhhhh");
       // If both fail, show a generic fallback:
-      return caches.match('index.html');
+      return caches.match('/index.html');
       // However, in reality you'd have many different
       // fallbacks, depending on URL & headers.
       // Eg, a fallback silhouette image for avatars.
