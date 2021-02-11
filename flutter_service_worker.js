@@ -225,7 +225,7 @@ self.addEventListener("fetch", (event) => {
 	//return caches.match('offline.html');
         console.log("generic fallback:","error");
 		if (request.mode === 'navigate') {
-        return caches.match('offline.html');
+        return caches.match('offline.html?revision=29a12286d');
       }
 
       // Otherwise throw
