@@ -224,12 +224,8 @@ self.addEventListener("fetch", (event) => {
       // If both fail, show a generic fallback:
 	//return caches.match('offline.html');
         console.log("generic fallback:","error");
-		if (request.mode === 'navigate') {
         return caches.match('offline.html');
-      }
-
-      // Otherwise throw
-      throw err;
+      
       // However, in reality you'd have many different
       // fallbacks, depending on URL & headers.
       // Eg, a fallback silhouette image for avatars.
