@@ -64,6 +64,7 @@ const RESOURCES = {
 "/": "b95b2df11d8d1c51f4529847d236d661",
 "main.dart.js": "a921be0b1323714027d2f1e68f5ea152",
 "manifest.json": "29a12286d9a014e60badf0bdaa1a8906",
+"offline.html": "29a12286d",
 "version.json": "cfb9af0ea5c16a2b1741e9d07494a8c1"
 };
 
@@ -75,6 +76,7 @@ const CORE = [
 "index.html",
 "assets/NOTICES",
 "assets/AssetManifest.json",
+"offline.html",
 "assets/FontManifest.json"];
 
 
@@ -165,6 +167,7 @@ self.addEventListener("activate", function(event) {
   }());
 });
 
+// The fetch handler redirects requests for RESOURCE files to the service
 // worker cache.
 self.addEventListener("fetch", (event) => {
 	try{
@@ -218,9 +221,15 @@ self.addEventListener("fetch", (event) => {
           return response;
         });
       }).catch(function() {
-	      console.log("hiiii","hhhhhhhhhhhh");
       // If both fail, show a generic fallback:
-      return caches.match('/index.html');
+	//return caches.match('offline.html');
+        console.log("generic fallback:","error");
+		if (request.mode === 'navigate') {
+        return caches.match('offline.html');
+      }
+
+      // Otherwise throw
+      throw err;
       // However, in reality you'd have many different
       // fallbacks, depending on URL & headers.
       // Eg, a fallback silhouette image for avatars.
@@ -235,6 +244,9 @@ self.addEventListener("fetch", (event) => {
     }
   
 });
+
+
+
 
 
 self.addEventListener('message', (event) => {
